@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head><title>生成图标</title></head>
+<body>
+<p>正在生成图标...</p>
+<script>
+function createIcon(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // 背景
+    const grad = ctx.createLinearGradient(0, 0, size, size);
+    grad.addColorStop(0, '#667eea');
+    grad.addColorStop(1, '#764ba2');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    // 圆角
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.beginPath();
+    ctx.roundRect(0, 0, size, size, size * 0.2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    // 文字
+    ctx.fillStyle = 'white';
+    ctx.font = `bold ${size * 0.5}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('📅', size/2, size/2);
+
+    return canvas.toDataURL('image/png');
+}
+
+// 下载图标
+[192, 512].forEach(size => {
+    const link = document.createElement('a');
+    link.download = `icon-${size}.png`;
+    link.href = createIcon(size);
+    link.click();
+});
+
+document.body.innerHTML = '<p style="font-size:24px">✅ 图标已下载！请将 icon-192.png 和 icon-512.png 放到同目录下。</p>';
+</script>
+</body>
+</html>

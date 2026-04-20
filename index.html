@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="打卡助手">
+    <title>打卡助手</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: env(safe-area-inset-top, 20px);
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .add-form {
+            display: flex;
+            gap: 10px;
+        }
+        .add-form input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+        .add-form input:focus {
+            border-color: #667eea;
+        }
+        .btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .task-list {
+            list-style: none;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .task-item.done {
+            background: #e8f5e9;
+        }
+        .check-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 3px solid #ddd;
+            background: white;
+            margin-right: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .check-btn.checked {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+            animation: pop 0.3s ease;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .task-info {
+            flex: 1;
+        }
+        .task-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .task-streak {
+            font-size: 13px;
+            color: #888;
+        }
+        .delete-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            color: #ccc;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .delete-btn:active {
+            background: #ffebee;
+            color: #f44336;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+        .stat-item {
+            padding: 16px 10px;
+        }
+        .stat-num {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #aaa;
+        }
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .tabs {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #666;
+        }
+        .tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .history-date {
+            color: #666;
+            font-size: 14px;
+        }
+        .history-tasks {
+            font-weight: 500;
+        }
+        .install-tip {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 打卡助手</h1>
+
+        <div class="install-tip" id="installTip">
+            💡 点击浏览器菜单「添加到主屏幕」可像APP一样使用
+        </div>
+
+        <div class="card">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-num" id="todayCount">0</div>
+                    <div class="stat-label">今日打卡</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="totalCount">0</div>
+                    <div class="stat-label">累计打卡</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="maxStreak">0</div>
+                    <div class="stat-label">最长连续</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="add-form">
+                <input type="text" id="taskInput" placeholder="添加新打卡项目..." maxlength="20">
+                <button class="btn" onclick="addTask()">添加</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('tasks', this)">打卡</button>
+                <button class="tab" onclick="switchTab('history', this)">历史</button>
+            </div>
+
+            <div id="tasksView">
+                <ul class="task-list" id="taskList"></ul>
+            </div>
+
+            <div id="historyView" style="display:none;">
+                <div class="history-list" id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 注册 Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
+        // 显示安装提示
+        if (window.matchMedia('(display-mode: standalone)').matches === false) {
+            document.getElementById('installTip').style.display = 'block';
+        }
+
+        const today = () => new Date().toISOString().split('T')[0];
+
+        const getData = () => JSON.parse(localStorage.getItem('checkinData') || '{"tasks":[],"records":{}}');
+        const saveData = (data) => localStorage.setItem('checkinData', JSON.stringify(data));
+
+        function init() {
+            renderTasks();
+            renderStats();
+            renderHistory();
+            checkNewDay();
+        }
+
+        // 检查是否新的一天，重置打卡状态
+        function checkNewDay() {
+            const data = getData();
+            const todayStr = today();
+            data.tasks.forEach(task => {
+                if (task.lastCheck && task.lastCheck !== todayStr) {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    if (task.lastCheck !== yesterday.toISOString().split('T')[0]) {
+                        task.streak = 0;
+                    }
+                }
+            });
+            saveData(data);
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const name = input.value.trim();
+            if (!name) return;
+
+            const data = getData();
+            if (data.tasks.find(t => t.name === name)) {
+                alert('该项目已存在');
+                return;
+            }
+            data.tasks.push({ name, streak: 0, lastCheck: null });
+            saveData(data);
+            input.value = '';
+            renderTasks();
+        }
+
+        function checkin(index) {
+            const data = getData();
+            const task = data.tasks[index];
+            const todayStr = today();
+
+            if (task.lastCheck === todayStr) {
+                task.lastCheck = null;
+                task.streak = Math.max(0, task.streak - 1);
+                delete data.records[todayStr]?.[task.name];
+            } else {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                if (task.lastCheck === yesterdayStr) {
+                    task.streak++;
+                } else {
+                    task.streak = 1;
+                }
+                task.lastCheck = todayStr;
+                data.records[todayStr] = data.records[todayStr] || {};
+                data.records[todayStr][task.name] = true;
+            }
+
+            saveData(data);
+            renderTasks();
+            renderStats();
+            renderHistory();
+        }
+
+        function deleteTask(index) {
+            if (!confirm('确定删除该打卡项目？')) return;
+            const data = getData();
+            data.tasks.splice(index, 1);
+            saveData(data);
+            renderTasks();
+            renderStats();
+        }
+
+        function renderTasks() {
+            const data = getData();
+            const list = document.getElementById('taskList');
+            const todayStr = today();
+
+            if (data.tasks.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <p>还没有打卡项目<br>快添加一个吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = data.tasks.map((task, i) => {
+                const checked = task.lastCheck === todayStr;
+                return `
+                    <li class="task-item ${checked ? 'done' : ''}">
+                        <button class="check-btn ${checked ? 'checked' : ''}" onclick="checkin(${i})">
+                            ${checked ? '✓' : ''}
+                        </button>
+                        <div class="task-info">
+                            <div class="task-name">${task.name}</div>
+                            <div class="task-streak">🔥 连续 ${task.streak} 天</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteTask(${i})">✕</button>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function renderStats() {
+            const data = getData();
+            const todayStr = today();
+            const todayRecords = data.records[todayStr] || {};
+
+            document.getElementById('todayCount').textContent = Object.keys(todayRecords).length;
+
+            let total = 0;
+            Object.values(data.records).forEach(r => total += Object.keys(r).length);
+            document.getElementById('totalCount').textContent = total;
+
+            const maxStreak = Math.max(0, ...data.tasks.map(t => t.streak));
+            document.getElementById('maxStreak').textContent = maxStreak;
+        }
+
+        function renderHistory() {
+            const data = getData();
+            const list = document.getElementById('historyList');
+            const dates = Object.keys(data.records).sort().reverse();
+
+            if (dates.length === 0) {
+                list.innerHTML = '<div class="empty-state"><p>暂无打卡记录</p></div>';
+                return;
+            }
+
+            list.innerHTML = dates.slice(0, 30).map(date => {
+                const tasks = Object.keys(data.records[date]);
+                const d = new Date(date);
+                const dateStr = `${d.getMonth() + 1}月${d.getDate()}日`;
+                return `
+                    <div class="history-item">
+                        <span class="history-date">${dateStr}</span>
+                        <span class="history-tasks">${tasks.length} 项</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tasksView').style.display = tab === 'tasks' ? 'block' : 'none';
+            document.getElementById('historyView').style.display = tab === 'history' ? 'block' : 'none';
+        }
+
+        document.getElementById('taskInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') addTask();
+        });
+
+        init();
+    </script>
+</body>
+</html>
